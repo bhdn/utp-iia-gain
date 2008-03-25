@@ -6,6 +6,7 @@ information.
 
 import sys
 import os
+import math
 import csv
 
 def choose_ref_attr(cols):
@@ -27,11 +28,33 @@ def choose_ref_attr(cols):
     return choice - 1
 
 def output_attrs(cols):
-    pass
+    print "Atributos ordenados por entropia:"
+    for entropy, attr in cols:
+        print "\t%s - %.02f" % entropy
 
-def sort_by_gain(cols, entries, ref):
-    pass
-
+def sort_by_gain(attrcols, entries, ref):
+    # a list of hash tables mapping each class with the occourrence inside
+    # each attribute:
+    allclasses = [{}] * len(attrcols)
+    lines = 0
+    for items in entries:
+        lines += 1
+        for idx, col in enumerate(items):
+            allclasses[idx][col] = allclasses[idx].get(col, 0) + 1
+    entropies = []
+    lines = float(lines) # argh!
+    for idx, classes in enumerate(allclasses):
+        for class_, count in classes.iteritems():
+            p = count / lines
+            entropy += -p * math.log(p, 2)
+        if idx == ref:
+            # our reference attribute, doesn't need to be sorted
+            refentropy = entropy
+            continue
+        entropies.append((entropy, attrcols[idx]))
+    entropies.sort()
+    return entropies
+        
 def work(args):
     for path in args:
         print "Arquivo %s" % path
