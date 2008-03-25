@@ -13,7 +13,7 @@ def choose_ref_attr(cols):
     while True:
         print "Escolha o atributo de referencia:"
         for i, col in enumerate(cols):
-            print "%d - %s" % (i, col)
+            print "%d - %s" % (i + 1, col)
         default = len(cols) # the last columns is the default
         rawchoice = raw_input("Qual destes? [%d]" % default)
         if rawchoice:
