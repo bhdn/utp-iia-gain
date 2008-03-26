@@ -30,12 +30,12 @@ def choose_ref_attr(cols):
 def output_attrs(cols):
     print "Atributos ordenados por entropia:"
     for entropy, attr in cols:
-        print "\t%s - %.02f" % entropy
+        print "\t%s - %f" % (attr, entropy)
 
 def sort_by_gain(attrcols, entries, ref):
     # a list of hash tables mapping each class with the occourrence inside
     # each attribute:
-    allclasses = [{}] * len(attrcols)
+    allclasses = [{} for i in xrange(len(attrcols))]
     lines = 0
     for items in entries:
         lines += 1
@@ -44,6 +44,7 @@ def sort_by_gain(attrcols, entries, ref):
     entropies = []
     lines = float(lines) # argh!
     for idx, classes in enumerate(allclasses):
+        entropy = 0.0
         for class_, count in classes.iteritems():
             p = count / lines
             entropy += -p * math.log(p, 2)
