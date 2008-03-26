@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Prints a ordered list of attributes sorted by the highest gain of
+Prints an ordered list of attributes sorted by the highest gain of
 information.
 """
 
