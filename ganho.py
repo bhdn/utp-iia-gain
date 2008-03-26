@@ -30,7 +30,7 @@ def choose_ref_attr(cols):
 def output_attrs(cols):
     print "Atributos ordenados por entropia:"
     for entropy, attr in cols:
-        print "%s - %f" % (attr, entropy)
+        print "%-25s %f" % (attr, entropy)
 
 def collect_attributes(ncols, entries, ref):
     # ["clima", "dinheiro", "quantos"] (column names)
