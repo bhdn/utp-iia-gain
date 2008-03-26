@@ -83,10 +83,11 @@ def information_gain(attrcols, lines, refclasses, allclasses, ref):
         attrgain = refentropy
         for class_, counter in classes.iteritems():
             classcount = float(counter[0])
+            attrentropy = 0.0
             for refclass, refcount in counter[1].iteritems():
                 p = refcount / classcount
-                attrentropy = p * math.log(p, 2)
-                attrgain -= -(classcount / lines) * attrentropy
+                attrentropy += -p * math.log(p, 2)
+            attrgain += -(classcount / lines) * attrentropy
         yield (attrgain, attrcols[attridx])
 
 def sort_by_gain(attrcols, entries, ref):
