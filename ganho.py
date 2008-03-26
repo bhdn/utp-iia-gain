@@ -33,8 +33,8 @@ def output_attrs(cols):
         print "\t%s - %f" % (attr, entropy)
 
 def sort_by_gain(attrcols, entries, ref):
-    # a list of hash tables mapping each class with the occourrence inside
-    # each attribute:
+    # a list of hash tables mapping each class of the domain with the
+    # occourrence inside each attribute:
     allclasses = [{} for i in xrange(len(attrcols))]
     lines = 0
     for items in entries:
