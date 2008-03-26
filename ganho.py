@@ -40,12 +40,19 @@ def sort_by_gain(attrcols, entries, ref):
     for items in entries:
         lines += 1
         for idx, col in enumerate(items):
-            allclasses[idx][col] = allclasses[idx].get(col, 0) + 1
+            try:
+                allclasses[idx][col][0] += 1
+            except KeyError:
+                allclasses[idx][col] = [1, [0]*len(attrcols)]
     entropies = []
     lines = float(lines) # argh!
     for idx, classes in enumerate(allclasses):
+        #XXX FINISH, add the code to use refcount and separate the code
+        # that handles the global entropy
+        # this code should calculate the entropy of each class of each
+        # attribute
         entropy = 0.0
-        for class_, count in classes.iteritems():
+        for class_, (count, refcount) in classes.iteritems():
             p = count / lines
             entropy += -p * math.log(p, 2)
         if idx == ref:
