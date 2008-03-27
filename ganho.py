@@ -32,7 +32,7 @@ def output_attrs(cols):
     for entropy, attr in cols:
         print "%-25s %f" % (attr, entropy)
 
-def collect_attributes(ncols, entries, ref):
+def collect_attributes(ncols, source, ref):
     # ["clima", "dinheiro", "quantos"] (column names)
     # [{"chuva": [N, {refcount}],
     #   "sol": [N, {refcount}],
@@ -51,7 +51,7 @@ def collect_attributes(ncols, entries, ref):
     allclasses = [{} for i in xrange(ncols)]
     refclasses = {}
     lines = 0
-    for items in entries:
+    for items in source:
         refclass = items[ref]
         for idxattr, class_ in enumerate(items):
             if idxattr == ref:
@@ -90,8 +90,9 @@ def information_gain(attrcols, lines, refclasses, allclasses, ref):
             attrgain += -(classcount / lines) * attrentropy
         yield (attrgain, attrcols[attridx])
 
-def sort_by_gain(attrcols, entries, ref):
-    lines, refclasses, allclasses = collect_attributes(len(attrcols), entries, ref)
+def sort_by_gain(attrcols, source, ref):
+    lines, refclasses, allclasses = collect_attributes(len(attrcols),
+            source, ref)
     gain = information_gain(attrcols, lines, refclasses, allclasses, ref)
     return sorted(gain, reverse=True)
         
