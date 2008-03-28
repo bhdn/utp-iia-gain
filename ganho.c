@@ -106,7 +106,7 @@ void free_table_stats(struct table_stats *ts)
 
 struct table_stats *collect_stats(FILE *stream)
 {
-	char line[MAXBUF];
+	char line[BUFSIZ];
 	char *lineptr, *token, *refclass, *last; /* used by strsep */
 	unsigned int refhash;
 	size_t nr_attributes;
