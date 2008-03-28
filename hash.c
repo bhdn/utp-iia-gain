@@ -10,7 +10,7 @@ void *hash_get(struct hash_table *table, unsigned char *key, size_t key_len)
 	struct hash_entry *found;
 	void *data = NULL;
 
-	hash = jenkins_one_at_a_time_hash(key, key_len);
+	hash = get_hash(key, key_len);
 	pos = hash % table->size;
 	found = table->entries[pos];
 	if (found && found->next) {
@@ -29,7 +29,8 @@ void *hash_get(struct hash_table *table, unsigned char *key, size_t key_len)
 	return data;
 }
 
-void *hash_put(struct hash_table *table, unsigned char *key, size_t key_len, void *data)
+void *hash_put(struct hash_table *table, unsigned char *key, size_t
+		key_len, void *data, unsigned int force_hash)
 {
 	unsigned int hash;
 	size_t pos;
@@ -48,7 +49,10 @@ void *hash_put(struct hash_table *table, unsigned char *key, size_t key_len, voi
 	strncpy(new->ney, key, key_len);
 	new->data = data;
 
-	hash = jenkins_one_at_a_time_hash(key, keylen);
+	if (force_hash == 0)
+		hash = get_hash(key, keylen);
+	else
+		hash = force_hash;
 
 	new->hash = hash;
 
@@ -107,7 +111,7 @@ struct hash_table *hash_init(size_t size)
 }
 
 /* from http://www.burtleburtle.net/bob/hash/doobs.html */
-unsigned int jenkins_one_at_a_time_hash(unsigned char *key, size_t key_len)
+unsigned int get_hash(unsigned char *key, size_t key_len)
 {
     unsigned int hash = 0;
     size_t i;

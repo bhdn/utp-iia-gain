@@ -15,5 +15,6 @@ struct hash_table *hash_init(size_t);
 void *hash_put(struct hash_table *, unsigned char *, size_t, void *);
 void *hash_get(struct hash_table *, unsigned char *, size_t);
 void hash_free(struct hash_table *);
+unsigned int get_hash(unsigned char *, size_t);
 
 #endif /* ifndef inc_hash_h */
