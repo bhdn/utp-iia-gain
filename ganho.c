@@ -33,7 +33,7 @@ struct class_entry {
 
 struct table_stats {
 	unsigned long lines;
-	struct class_entry *attributes;
+	struct class_entry **attributes;
 	size_t nr_attributes;
 	struct hash_table *refclasses;
 };
@@ -75,7 +75,7 @@ struct table_stats *new_table_stats(size_t nr_attributes)
 		goto failed;
 
 	size = sizeof(struct class_entry*) * nr_attributes;
-	ts->attributes = (struct class_entry*) malloc(size);
+	ts->attributes = (struct class_entry**) malloc(size);
 	if (!ts->attributes)
 		goto failed;
 	memset(ts->attributes, nr_attributes, sizeof(struct class_entry*));
@@ -93,7 +93,7 @@ void free_table_stats(struct table_stats *ts)
 {
 	size_t i;
 
-	if (!rs)
+	if (!ts)
 		return;
 	if (ts->refclasses)
 		hash_free(ts->refclasses);
