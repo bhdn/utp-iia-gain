@@ -156,19 +156,18 @@ struct table_stats *collect_stats(FILE *stream)
 						"%s\n", line);
 				goto failed;
 			}
-			refsize = strnlen(refsize, sizeof(line)-1);
+			refsize = strnlen(refclass, sizeof(line)-1);
 			refhash = get_hash(refclass, refsize);
 
 			/* now we can iterate over the classes in this line
 			 * and update their stats */
-			for (ia = 0; token; token = strtok_r(lineptr, ",", &last), ia++) {
+			for (ia = 0; token; token = strtok_r(lineptr, ",", &last), ia++, lineptr = NULL) {
 				if (ia == refattr)
 					continue;
 
 				classes = ts->attributes[ia];
 				size = strnlen(token, sizeof(line) - 1);
-				ce = (struct class_entry*)
-					hash_get(classes, token, size, 0);
+				ce = (struct class_entry*) hash_get(classes, token, size, 0);
 				if (!ce) {
 					ce = new_class_entry();
 					if(!ce)
@@ -206,7 +205,7 @@ int main(int argc, char **argv)
 	FILE *stream;
 	struct table_stats *ts;
 
-	for (i = 0; i < argc; i++) {
+	for (i = 1; i < argc; i++) {
 		stream = fopen(argv[i], "r");
 		if (!stream) {
 			perror("opening file");

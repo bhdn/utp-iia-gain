@@ -100,7 +100,7 @@ struct hash_table *hash_init(size_t size)
 		return NULL;
 	}
 	table->size = size;
-	memset((void*)table->entries, NULL, toalloc);
+	memset((void*)table->entries, 0, toalloc);
 
 	return table;
 }
