@@ -161,7 +161,7 @@ struct table_stats *collect_stats(FILE *stream)
 
 			/* now we can iterate over the classes in this line
 			 * and update their stats */
-			for (ia = 0; token; token = strtok_r(lineptr, ",", &last), ia++, lineptr = NULL) {
+			for (ia = 0; token = strtok_r(lineptr, ",", &last); ia++, lineptr = NULL) {
 				if (ia == refattr)
 					continue;
 
