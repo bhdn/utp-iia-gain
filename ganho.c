@@ -117,6 +117,8 @@ struct table_stats *collect_stats(FILE *stream)
 	size_t nr_attributes;
 	size_t ia;
 	size_t size;
+	size_t refsize;
+	size_t nrefclasses;
 	size_t refattr;
 	struct table_stats *ts = NULL;
 	struct class_entry *ce;
@@ -163,17 +165,24 @@ struct table_stats *collect_stats(FILE *stream)
 				classes = ts->attributes[ia];
 				if (!classes)
 					classes = ts->attributes[ia] = hash_init(10);
+
 				size = strnlen(token, sizeof(line) - 1);
-				ce = hash_get(classes, token, size);
+				ce = (struct class_entry*)
+					hash_get(classes, token, size, 0);
 				if (!ce) {
 					ce = new_class_entry();
 					if(!ce)
 						goto failed;
-					if(!hash_put(classes, token, size, (void*)ce))
+					if(!hash_put(classes, token, size, (void*)ce, 0))
 						goto failed;
-					refmap = hash_get(ce->refmap,
-							refclass, refsize)
 				}
+
+				ce->count++;
+
+				/* increase the count for this class in
+				 * this refclass */
+				nrefclasses = (size_t) hash_get(ce->refmap, refclass, refsize, refhash);
+				hash_put(ce->refmap, refclass, refsize, (void*) (nrefclasses + 1), refhash);
 			}
 		}
 
