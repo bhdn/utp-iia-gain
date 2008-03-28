@@ -42,7 +42,7 @@ struct class_entry *new_class_entry()
 {
 	struct class_entry *cl;
 
-	cl = (struct class_entry*) malloc(sizeof(class_entry));
+	cl = (struct class_entry*) malloc(sizeof(struct class_entry));
 	if (!cl)
 		return NULL;
 	cl->count = 0;
