@@ -149,7 +149,8 @@ struct table_stats *collect_stats(FILE *stream)
 						"%s\n", line);
 				goto failed;
 			}
-			refhash = get_hash(refclass);
+			refsize = strnlen(refsize, sizeof(line)-1);
+			refhash = get_hash(refclass, refsize);
 
 			/* now we can iterate over the classes in this line
 			 * and update their stats */
