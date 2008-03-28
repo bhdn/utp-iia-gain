@@ -145,7 +145,7 @@ struct table_stats *collect_stats(FILE *stream)
 			 * a simple loop around strtok_r */
 			refclass = strrchr(line, ',') + 1;
 			if (!refclass) {
-				fprintf("ouch, missing comma in line: "
+				fprintf(stderr, "ouch, missing comma in line: "
 						"%s\n", line);
 				goto failed;
 			}
@@ -153,7 +153,7 @@ struct table_stats *collect_stats(FILE *stream)
 
 			/* now we can iterate over the classes in this line
 			 * and update their stats */
-			for (ia = 0; token; token = strtok_r(linestr, ',', &last), ia++) {
+			for (ia = 0; token; token = strtok_r(lineptr, ',', &last), ia++) {
 				if (ia == refattr)
 					continue;
 
