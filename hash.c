@@ -63,6 +63,8 @@ void *hash_put(struct hash_table *table, unsigned char *key, size_t
 	return new; /* just to say it didn't fail */
 }
 
+
+
 void hash_free_entry(struct hash_entry *entry)
 {
 	struct hash_entry *next;
