@@ -51,7 +51,6 @@ void *hash_put(struct hash_table *table, unsigned char *key, size_t
 	new->key_len = key_len;
 	new->data = data;
 	hash = force_hash ? force_hash : get_hash(key, key_len);
-	new->hash = hash;
 	pos = hash % table->size;
 	found = table->entries[pos];
 	if (!found)
@@ -94,14 +93,14 @@ struct hash_table *hash_init(size_t size)
 	table = (struct hash_table*) malloc(sizeof(struct hash_table));
 	if (!table)
 		return NULL;
-	toalloc = sizeof(struct hash_entry) * size;
-	table->entries = (struct hash_entry*) malloc(toalloc);
+	toalloc = sizeof(struct hash_entry*) * size;
+	table->entries = (struct hash_entry**) malloc(toalloc);
 	if (!table->entries) {
 		free(table);
 		return NULL;
 	}
 	table->size = size;
-	memset(table->entries, NULL, toalloc);
+	memset((void*)table->entries, NULL, toalloc);
 
 	return table;
 }
