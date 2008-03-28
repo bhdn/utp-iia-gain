@@ -57,13 +57,8 @@ struct class_entry *new_class_entry()
 
 void free_class_entry(struct class_entry *cl)
 {
-	struct class_entry *next;
-	while (cl) {
-		next = cl->next;
-		hash_free(cl->refmap);
-		free(cl);
-		cl = next;
-	}
+	hash_free(cl->refmap);
+	free(cl);
 }
 
 struct table_stats *new_table_stats(size_t nr_attributes)
