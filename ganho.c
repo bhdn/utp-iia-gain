@@ -61,6 +61,21 @@ void free_class_entry(struct class_entry *cl)
 	free(cl);
 }
 
+void free_table_stats(struct table_stats *ts)
+{
+	size_t i;
+
+	if (!ts)
+		return;
+	if (ts->refclasses)
+		hash_free(ts->refclasses);
+	if (ts->attributes)
+		for (i = 0; i < ts->nr_attributes; i++)
+			free_class_entry(ts->attributes[i]);
+	free(ts->attributes);
+	free(ts);
+}
+
 struct table_stats *new_table_stats(size_t nr_attributes)
 {
 	struct table_stats *ts;
@@ -87,21 +102,6 @@ struct table_stats *new_table_stats(size_t nr_attributes)
 failed:
 	free_table_stats(ts);
 	return NULL;
-}
-
-void free_table_stats(struct table_stats *ts)
-{
-	size_t i;
-
-	if (!ts)
-		return;
-	if (ts->refclasses)
-		hash_free(ts->refclasses);
-	if (ts->attributes)
-		for (i = 0; i < ts->nr_attributes; i++)
-			free_class_entry(ts->attributes[i]);
-	free(ts->attributes);
-	free(ts);
 }
 
 struct table_stats *collect_stats(FILE *stream)
