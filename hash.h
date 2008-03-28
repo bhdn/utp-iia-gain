@@ -8,7 +8,7 @@ struct hash_entry {
 
 struct hash_table {
 	size_t size;
-	hash_entry *entries;
+	struct hash_entry *entries;
 };
 
 struct hash_table *hash_init(size_t);
