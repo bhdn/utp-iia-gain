@@ -33,7 +33,7 @@ struct class_entry {
 
 struct table_stats {
 	unsigned long lines;
-	struct class_entry **attributes;
+	struct hash_table **attributes;
 	size_t nr_attributes;
 	struct hash_table *refclasses;
 };
@@ -71,7 +71,7 @@ void free_table_stats(struct table_stats *ts)
 		hash_free(ts->refclasses);
 	if (ts->attributes)
 		for (i = 0; i < ts->nr_attributes; i++)
-			free_class_entry(ts->attributes[i]);
+			hash_free(ts->attributes[i]);
 	free(ts->attributes);
 	free(ts);
 }
@@ -79,7 +79,7 @@ void free_table_stats(struct table_stats *ts)
 struct table_stats *new_table_stats(size_t nr_attributes)
 {
 	struct table_stats *ts;
-	size_t size, i;
+	size_t i;
 
 	ts = (struct table_stats*) malloc(sizeof(struct table_stats));
 	if (!ts)
@@ -89,11 +89,18 @@ struct table_stats *new_table_stats(size_t nr_attributes)
 	if (!ts->refclasses)
 		goto failed;
 
-	size = sizeof(struct class_entry*) * nr_attributes;
-	ts->attributes = (struct class_entry**) malloc(size);
+	ts->attributes = (struct hash_table**) malloc(sizeof(struct hash_table*) * nr_attributes);
 	if (!ts->attributes)
 		goto failed;
-	memset(ts->attributes, nr_attributes, sizeof(struct class_entry*));
+	for (i = 0; i < nr_attributes; i++) {
+		ts->attributes[i] = hash_init(1024);
+		if (!ts->attributes[i]) {
+			for (; i >= 0; i--)
+				hash_free(ts->attributes[i]);
+			free(ts->attributes);
+			return NULL;
+		}
+	}
 
 	ts->nr_attributes = nr_attributes;
 	ts->lines = 0;
@@ -159,9 +166,6 @@ struct table_stats *collect_stats(FILE *stream)
 					continue;
 
 				classes = ts->attributes[ia];
-				if (!classes)
-					classes = ts->attributes[ia] = hash_init(10);
-
 				size = strnlen(token, sizeof(line) - 1);
 				ce = (struct class_entry*)
 					hash_get(classes, token, size, 0);
