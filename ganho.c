@@ -202,5 +202,23 @@ int *sort_by_gain() {
 
 int main(int argc, char **argv) 
 {
-	//
+	size_t i;
+	FILE *stream;
+	struct table_stats *ts;
+
+	for (i = 0; i < argc; i++) {
+		stream = fopen(argv[i], "r");
+		if (!stream) {
+			perror("opening file");
+			return 1;
+		}
+
+		ts = collect_stats(stream);
+		if (!ts) {
+			perror("parsing file");
+			return 1;
+		}
+	}
+
+	return 0;
 }
