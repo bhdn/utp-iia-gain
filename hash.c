@@ -24,7 +24,7 @@ void *hash_get(struct hash_table *table, unsigned char *key, size_t
 			found = found->next;
 		}
 	}
-	else
+	else if (found)
 		data = found->data;
 
 	return data;
