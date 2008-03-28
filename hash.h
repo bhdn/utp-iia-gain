@@ -2,6 +2,7 @@
 
 struct hash_entry {
 	unsigned char *key;
+	size_t key_len;
 	void *data;
 	struct hash_entry *next;
 };

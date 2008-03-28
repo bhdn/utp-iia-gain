@@ -47,9 +47,10 @@ void *hash_put(struct hash_table *table, unsigned char *key, size_t
 		free(new);
 		return NULL;
 	}
-	strncpy(new->ney, key, key_len);
+	strncpy(new->key, key, key_len);
+	new->key_len = key_len;
 	new->data = data;
-	hash = force_hash ? force_hash : get_hash(key, keylen);
+	hash = force_hash ? force_hash : get_hash(key, key_len);
 	new->hash = hash;
 	pos = hash % table->size;
 	found = table->entries[pos];
