@@ -1,5 +1,4 @@
 /**
- *
  * A crappy C implementation to find the information gain inside a CSV
  * table.
  *
@@ -24,37 +23,41 @@
 
 #include "hash.h"
 
-/* classes don't need to have their names stored, just their "uniqueness"
+/* classes don't need to have their names stored, just their "uniqueness" 
  * is enough */
-struct class_list {
+struct class_entry {
 	unsigned long count;
 	struct hash_table *refmap; /* counts in which classes of the ref.
-				      attribute it appeared */
-	class_list *next;
+				    * attribute it appeared */
 };
 
 struct table_stats {
 	unsigned long lines;
-	struct class_list *attributes;
+	struct class_entry *attributes;
 	size_t nr_attributes;
+	struct hash_table *refclasses;
 };
 
-struct class_list *new_class_list(const char *name)
+struct class_entry *new_class_entry()
 {
-	struct class_list *cl;
+	struct class_entry *cl;
 
-	cl = (struct class_list*) malloc(sizeof(class_list));
+	cl = (struct class_entry*) malloc(sizeof(class_entry));
 	if (!cl)
 		return NULL;
-	cl->hash = hash(name);
-	cl->next = NULL;
+	cl->count = 0;
+	cl->refmap = hash_init(50);
+	if (!cl->refmap) {
+		free(cl);
+		return NULL;
+	}
 
-	return cl;	
+	return cl;
 }
 
-void free_class_list(struct class_list *cl)
+void free_class_entry(struct class_entry *cl)
 {
-	struct class_list *next;
+	struct class_entry *next;
 	while (cl) {
 		next = cl->next;
 		hash_free(cl->refmap);
@@ -63,55 +66,125 @@ void free_class_list(struct class_list *cl)
 	}
 }
 
-struct table_stats *new_table_stats(void)
+struct table_stats *new_table_stats(size_t nr_attributes)
 {
 	struct table_stats *ts;
+	size_t size, i;
 
 	ts = (struct table_stats*) malloc(sizeof(struct table_stats));
 	if (!ts)
 		return NULL;
+
+	ts->refclasses = hash_init(1024);
+	if (!ts->refclasses)
+		goto failed;
+
+	size = sizeof(struct class_entry*) * nr_attributes;
+	ts->attributes = (struct class_entry*) malloc(size);
+	if (!ts->attributes)
+		goto failed;
+	memset(ts->attributes, nr_attributes, sizeof(struct class_entry*));
+
+	ts->nr_attributes = nr_attributes;
 	ts->lines = 0;
-	ts->attributes = NULL;
-	ts->nr_attributes = 0;
+
+	return ts;
+failed:
+	free_table_stats(ts);
+	return NULL;
 }
 
 void free_table_stats(struct table_stats *ts)
 {
-	if (ts->attributes)
-		free_class_list(ts->attributes);
-	free(ts);
-}
+	size_t i;
 
-int count_attributes(FILE *stream)
-{
+	if (!rs)
+		return;
+	if (ts->refclasses)
+		hash_free(ts->refclasses);
+	if (ts->attributes)
+		for (i = 0; i < ts->nr_attributes; i++)
+			free_class_entry(ts->attributes[i]);
+	free(ts->attributes);
+	free(ts);
 }
 
 struct table_stats *collect_stats(FILE *stream)
 {
-	struct table_stats *ts;
 	char line[MAXBUF];
-	char *lineptr, *token; /* used by strsep */
-	int nr_attributes;
-	int first_line = 1;
+	char *lineptr, *token, *refclass, *last; /* used by strsep */
+	unsigned int refhash;
+	size_t nr_attributes;
+	size_t ia;
+	size_t size;
+	size_t refattr;
+	struct table_stats *ts = NULL;
+	struct class_entry *ce;
+	struct hash_table *classes;
 
-	ts = new_table_stats();
-	if (!ts)
-		return NULL;
+	nr_attributes = 0;
+	while (fgets(line, sizeof(line)-1, stream)) {
+		last = lineptr = line;
 
-	while (1) {
-		if (!fgets(line, sizeof(line) - 1, stream)) {
-			if (!feof(stream)) {
-				free_table_stats(ts);
-				return NULL;
-			}
-			break;
-		}
-		lineptr = line;
-		nr_attributes = 0;
-		while (token = strsep(&lineptr, ",")) {
+		if (nr_attributes == 0) {
+			/* count how many attributes we have and initialize
+			 * the needed structures */
+			while (*lineptr++)
+				if (*lineptr == ',')
+					nr_attributes++;
 			nr_attributes++;
+			refattr = nr_attributes - 1;
+
+			ts = new_table_stats(nr_attributes);
+			if (!ts)
+				goto failed;
+
+			fseek(stream, 0L, SEEK_SET);
 		}
+		else {
+			/* first of all obtain the hash of the reference
+			 * attribute that is used in this line, this way we
+			 * can store the stats for each attribute class in
+			 * a simple loop around strtok_r */
+			refclass = strrchr(line, ',') + 1;
+			if (!refclass) {
+				fprintf("ouch, missing comma in line: "
+						"%s\n", line);
+				goto failed;
+			}
+			refhash = get_hash(refclass);
+
+			/* now we can iterate over the classes in this line
+			 * and update their stats */
+			for (ia = 0; token; token = strtok_r(linestr, ',', &last), ia++) {
+				if (ia == refattr)
+					continue;
+
+				classes = ts->attributes[ia];
+				if (!classes)
+					classes = ts->attributes[ia] = hash_init(10);
+				size = strnlen(token, sizeof(line) - 1);
+				ce = hash_get(classes, token, size);
+				if (!ce) {
+					ce = new_class_entry();
+					if(!ce)
+						goto failed;
+					if(!hash_put(classes, token, size, (void*)ce))
+						goto failed;
+					refmap = hash_get(ce->refmap,
+							refclass, refsize)
+				}
+			}
+		}
+
 	}
+	if (!feof(stream))
+		goto failed;
+
+	return ts;
+failed:
+	free_table_stats(ts);
+	return NULL;
 
 }
 
