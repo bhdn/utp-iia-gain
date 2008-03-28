@@ -3,14 +3,15 @@
 
 #include "hash.h"
 
-void *hash_get(struct hash_table *table, unsigned char *key, size_t key_len)
+void *hash_get(struct hash_table *table, unsigned char *key, size_t
+		key_len, unsigned int force_hash)
 {
 	unsigned int hash;
 	size_t pos;
 	struct hash_entry *found;
 	void *data = NULL;
 
-	hash = get_hash(key, key_len);
+	hash = force_hash ? force_hash : get_hash(key, key_len);
 	pos = hash % table->size;
 	found = table->entries[pos];
 	if (found && found->next) {
@@ -48,14 +49,8 @@ void *hash_put(struct hash_table *table, unsigned char *key, size_t
 	}
 	strncpy(new->ney, key, key_len);
 	new->data = data;
-
-	if (force_hash == 0)
-		hash = get_hash(key, keylen);
-	else
-		hash = force_hash;
-
+	hash = force_hash ? force_hash : get_hash(key, keylen);
 	new->hash = hash;
-
 	pos = hash % table->size;
 	found = table->entries[pos];
 	if (!found)

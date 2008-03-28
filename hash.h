@@ -12,8 +12,9 @@ struct hash_table {
 };
 
 struct hash_table *hash_init(size_t);
-void *hash_put(struct hash_table *, unsigned char *, size_t, void *);
-void *hash_get(struct hash_table *, unsigned char *, size_t);
+void *hash_put(struct hash_table *, unsigned char *, size_t, void *,
+		unsigned int);
+void *hash_get(struct hash_table *, unsigned char *, size_t, unsigned int);
 void hash_free(struct hash_table *);
 unsigned int get_hash(unsigned char *, size_t);
 
