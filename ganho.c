@@ -184,7 +184,7 @@ struct table_stats *collect_stats(FILE *stream)
 				hash_put(ce->refmap, refclass, refsize, (void*) (nrefclasses + 1), refhash);
 			}
 		}
-
+		ts->lines++;
 	}
 	if (!feof(stream))
 		goto failed;
