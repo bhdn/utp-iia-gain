@@ -140,24 +140,79 @@ void dump_table_stats(struct table_stats *ts)
 
 }
 
-struct table_stats *collect_stats(FILE *stream)
+struct table_stats *parse_line(struct table_stats *ts, char *line,
+		size_t line_size, size_t refattr)
 {
-	char line[BUFSIZ];
-	char *lineptr, *token, *refclass, *last; /* used by strsep */
-	unsigned int refhash;
-	size_t nr_attributes;
-	size_t ia;
-	size_t size;
+	char *refclass;
+	char *token;
+	char *last;
 	size_t refsize;
+	size_t ia;
 	size_t nrefclasses;
-	size_t refattr;
-	struct table_stats *ts = NULL;
+	size_t size;
+	unsigned int refhash;
 	struct class_entry *ce;
 	struct hash_table *classes;
 
+	/* first of all obtain the hash of the reference
+	 * attribute that is used in this line, this way we
+	 * can store the stats for each attribute class in
+	 * a simple loop around strtok_r */
+	refclass = strrchr(line, ',') + 1;
+	if (!refclass) {
+		fprintf(stderr, "ouch, missing comma in line: "
+				"%s\n", line);
+		goto failed;
+	}
+	refsize = strnlen(refclass, line_size);
+	refhash = get_hash(refclass, refsize);
+
+	/* now we can iterate over the classes in this line
+	 * and update their stats */
+	for (ia = 0; token = strtok_r(line, ",", &last);
+	     ia++, line = NULL) {
+		if (ia == refattr)
+			continue;
+
+		classes = ts->attributes[ia];
+		size = strnlen(token, line_size);
+		ce = (struct class_entry*)
+		        hash_get(classes, token, size, 0);
+		if (!ce) {
+			ce = new_class_entry();
+			if(!ce)
+				goto failed;
+			if(!hash_put(classes, token, size, (void*)ce, 0))
+				goto failed;
+		}
+
+		ce->count++;
+
+		/* increase the count for this class in
+		 * this refclass */
+		nrefclasses = (size_t) hash_get(ce->refmap, refclass,
+		                                refsize, refhash);
+		hash_put(ce->refmap, refclass, refsize,
+		         (void*) (nrefclasses + 1), refhash);
+	}
+	return ts;
+failed:
+	return NULL;
+}
+
+struct table_stats *collect_stats(FILE *stream)
+{
+	char line[BUFSIZ];
+	char *lineptr; /* used by strsep */
+	unsigned int refhash;
+	size_t nr_attributes;
+	size_t size;
+	size_t refattr;
+	struct table_stats *ts = NULL;
+
 	nr_attributes = 0;
 	while (fgets(line, sizeof(line)-1, stream)) {
-		last = lineptr = line;
+		lineptr = line;
 
 		if (nr_attributes == 0) {
 			/* count how many attributes we have and initialize
@@ -174,45 +229,9 @@ struct table_stats *collect_stats(FILE *stream)
 
 			fseek(stream, 0L, SEEK_SET);
 		}
-		else {
-			/* first of all obtain the hash of the reference
-			 * attribute that is used in this line, this way we
-			 * can store the stats for each attribute class in
-			 * a simple loop around strtok_r */
-			refclass = strrchr(line, ',') + 1;
-			if (!refclass) {
-				fprintf(stderr, "ouch, missing comma in line: "
-						"%s\n", line);
+		else
+			if (!parse_line(ts, line, sizeof(line)-1, refattr))
 				goto failed;
-			}
-			refsize = strnlen(refclass, sizeof(line)-1);
-			refhash = get_hash(refclass, refsize);
-
-			/* now we can iterate over the classes in this line
-			 * and update their stats */
-			for (ia = 0; token = strtok_r(lineptr, ",", &last); ia++, lineptr = NULL) {
-				if (ia == refattr)
-					continue;
-
-				classes = ts->attributes[ia];
-				size = strnlen(token, sizeof(line) - 1);
-				ce = (struct class_entry*) hash_get(classes, token, size, 0);
-				if (!ce) {
-					ce = new_class_entry();
-					if(!ce)
-						goto failed;
-					if(!hash_put(classes, token, size, (void*)ce, 0))
-						goto failed;
-				}
-
-				ce->count++;
-
-				/* increase the count for this class in
-				 * this refclass */
-				nrefclasses = (size_t) hash_get(ce->refmap, refclass, refsize, refhash);
-				hash_put(ce->refmap, refclass, refsize, (void*) (nrefclasses + 1), refhash);
-			}
-		}
 		ts->lines++;
 	}
 	if (!feof(stream))
