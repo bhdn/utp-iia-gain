@@ -42,27 +42,31 @@ void *hash_put(struct hash_table *table, unsigned char *key, size_t
 	size_t pos;
 	struct hash_entry *found, *new;
 
-	new = (struct hash_entry*) malloc(sizeof(struct hash_entry));
-	if (!new)
-		return NULL;
-	new->key = (char*) malloc(sizeof(char) * key_len + 1); /* XXX for
-								  debug
-								  only */
-	strncpy(new->key, key, key_len);
-
-	new->next = NULL;
-	new->key_len = key_len;
-	new->data = data;
 	hash = force_hash ? force_hash : get_hash(key, key_len);
-	new->hash = hash;
 	pos = hash % table->size;
 	found = table->entries[pos];
-	if (!found)
-		table->entries[pos] = new;
+	if (found && found->hash == hash && found->key_len == key_len)
+		/* just update the key */
+		found->data = data;
 	else {
-		while (found->next)
-			found = found->next;
-		found->next = new;
+		new = (struct hash_entry*) malloc(sizeof(struct hash_entry));
+		if (!new)
+			return NULL;
+		new->key = (char*) malloc(sizeof(char) * key_len + 1);
+		strncpy(new->key, key, key_len);
+		new->key_len = key_len;
+		new->next = NULL;
+		new->hash = hash;
+		new->data = data;
+		table->entries[pos] = new;
+
+		if (found) {
+			while (found->next)
+				found = found->next;
+			found->next = new;
+		}
+		else
+			table->entries[pos] = new;
 	}
 
 	return new; /* just to say it didn't fail */
