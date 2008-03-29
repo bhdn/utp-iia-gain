@@ -111,6 +111,35 @@ failed:
 	return NULL;
 }
 
+void dump_table_stats(struct table_stats *ts)
+{
+	size_t i, j, k;
+	struct class_entry *ce;
+
+	printf("lines: %d\n", ts->lines);
+	for (i = 0; i < ts->nr_attributes; i++) {
+		printf("attribute %d:\n", i);
+		for (j = 0; j < ts->attributes[i]->size; j++) {
+			if (!ts->attributes[i]->entries[j])
+				continue; /* empty pigeonhole */
+			printf("  class %s:\n",
+     			       ts->attributes[i]->entries[j]->key);
+			ce = (struct class_entry*)
+				ts->attributes[i]->entries[j]->data;
+			for (k = 0; k < ce->refmap->size; k++) {
+				if (!ce->refmap->entries[k])
+					continue; /* empty pigeonhole */
+				printf("        refmap %s ->\t%d\n",
+				       ce->refmap->entries[k]->key,
+				       (size_t) ce->refmap->entries[k]->data);
+			}
+
+		}
+
+	}
+
+}
+
 struct table_stats *collect_stats(FILE *stream)
 {
 	char line[BUFSIZ];
@@ -213,6 +242,7 @@ int main(int argc, char **argv)
 		}
 
 		ts = collect_stats(stream);
+		dump_table_stats(ts);
 		if (!ts) {
 			perror("parsing file");
 			return 1;

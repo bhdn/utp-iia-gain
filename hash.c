@@ -45,6 +45,11 @@ void *hash_put(struct hash_table *table, unsigned char *key, size_t
 	new = (struct hash_entry*) malloc(sizeof(struct hash_entry));
 	if (!new)
 		return NULL;
+	new->key = (char*) malloc(sizeof(char) * key_len + 1); /* XXX for
+								  debug
+								  only */
+	strncpy(new->key, key, key_len);
+
 	new->next = NULL;
 	new->key_len = key_len;
 	new->data = data;
@@ -62,8 +67,6 @@ void *hash_put(struct hash_table *table, unsigned char *key, size_t
 
 	return new; /* just to say it didn't fail */
 }
-
-
 
 void hash_free_entry(struct hash_entry *entry)
 {

@@ -1,6 +1,7 @@
 #ifndef inc_hash_h
 
 struct hash_entry {
+	char *key;
 	size_t key_len;
 	unsigned int hash;
 	void *data;
