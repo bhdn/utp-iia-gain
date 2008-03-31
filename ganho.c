@@ -404,6 +404,9 @@ int main(int argc, char **argv)
 		sort_by_gain(allgains, count);
 
 		output_gains(allgains, count, ts->refattr);
+
+		free(allgains);
+		free_table_stats(ts);
 	}
 
 	return 0;
