@@ -52,9 +52,11 @@ void *hash_put(struct hash_table *table, unsigned char *key, size_t
 		new = (struct hash_entry*) malloc(sizeof(struct hash_entry));
 		if (!new)
 			return NULL;
+#ifdef DEBUG
 		new->key = (char*) malloc(sizeof(char) * key_len + 1);
 		strncpy(new->key, key, key_len + 1);
 		new->key[key_len] = '\0';
+#endif
 		new->key_len = key_len;
 		new->next = NULL;
 		new->hash = hash;
@@ -62,6 +64,9 @@ void *hash_put(struct hash_table *table, unsigned char *key, size_t
 		table->entries[pos] = new;
 
 		if (found) {
+#ifdef DEBUG
+			printf("hash collision with %s!\n", found->key);
+#endif
 			while (found->next)
 				found = found->next;
 			found->next = new;

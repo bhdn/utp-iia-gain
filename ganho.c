@@ -21,9 +21,10 @@
 #include <string.h>
 #include <math.h>
 
+#undef DEBUG
+
 #include "hash.h"
 
-#undef DEBUG
 
 /* classes don't need to have their names stored, just their "uniqueness" 
  * is enough */
@@ -121,6 +122,9 @@ failed:
 	return NULL;
 }
 
+
+#ifdef DEBUG
+
 void dump_table_stats(struct table_stats *ts)
 {
 	size_t i, j, k;
@@ -160,6 +164,7 @@ void dump_table_stats(struct table_stats *ts)
 	}
 
 }
+#endif
 
 struct table_stats *parse_line(struct table_stats *ts, char *line,
 		size_t line_size)
