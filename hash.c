@@ -153,6 +153,7 @@ void hash_free(struct hash_table *table)
 	for (i = 0; i < table->size; i++)
 		if (table->entries[i])
 			hash_free_entry(table->entries[i]);
+	free(table);
 }
 
 struct hash_table *hash_init(size_t size)
