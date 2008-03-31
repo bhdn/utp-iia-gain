@@ -350,7 +350,8 @@ failed:
 	return NULL;
 }
 
-int attribute_gain_cmp(const void *ptr1, const void *ptr2) {
+int attribute_gain_cmp(const void *ptr1, const void *ptr2)
+{
 	struct attribute_gain *ag1, *ag2;
 
 	ag1 = (struct attribute_gain*) ptr1;
@@ -364,7 +365,8 @@ int attribute_gain_cmp(const void *ptr1, const void *ptr2) {
 		return 0;
 }
 
-void sort_by_gain(struct attribute_gain *allgains, size_t count) {
+void sort_by_gain(struct attribute_gain *allgains, size_t count)
+{
 	qsort(allgains, count, sizeof(struct attribute_gain),
 	      attribute_gain_cmp);
 }
