@@ -89,7 +89,8 @@ struct table_stats *new_table_stats(size_t nr_attributes)
 	if (!ts->refclasses)
 		goto failed;
 
-	ts->attributes = (struct hash_table**) malloc(sizeof(struct hash_table*) * nr_attributes);
+	ts->attributes = (struct hash_table**)
+		malloc(sizeof(struct hash_table*) * nr_attributes);
 	if (!ts->attributes)
 		goto failed;
 	for (i = 0; i < nr_attributes; i++) {
