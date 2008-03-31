@@ -396,6 +396,12 @@ int main(int argc, char **argv)
 	struct table_stats *ts;
 	struct attribute_gain *allgains;
 
+	if (argc <= 1) {
+		printf("Usage:\n\n"
+		       "%s <file.cvs>\n\n", argv[0]);
+		return 0;
+	}
+
 	for (i = 1; i < argc; i++) {
 		stream = fopen(argv[i], "r");
 		if (!stream) {
