@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <errno.h>
 
 #define DEBUG
 
@@ -170,7 +171,7 @@ void dump_table_stats(struct table_stats *ts)
 #endif
 
 struct table_stats *parse_line(struct table_stats *ts, char *line,
-		size_t line_size)
+		size_t line_size, size_t lineno)
 {
 	char *refclass;
 	char *token;
@@ -208,6 +209,15 @@ struct table_stats *parse_line(struct table_stats *ts, char *line,
 	     ia++, line = NULL) {
 		if (ia == ts->refattr)
 			continue;
+		if (ia >= ts->nr_attributes) {
+			fprintf(stderr, "format error: "
+					"the number of columns of the "
+					"line %u doesn't match the first "
+					"line count (%u columns)\n",
+					lineno, ts->nr_attributes);
+			errno  = EINVAL;
+			goto failed;
+		}
 
 		classes = ts->attributes[ia];
 		size = strnlen(token, line_size);
@@ -277,9 +287,9 @@ struct table_stats *collect_stats(FILE *stream)
 			fseek(stream, 0L, SEEK_SET);
 		}
 		else {
-			if (!parse_line(ts, line, sizeof(line)-1))
-				goto failed;
 			ts->lines++;
+			if (!parse_line(ts, line, sizeof(line)-1, ts->lines))
+				goto failed;
 		}
 	}
 	if (!feof(stream))
