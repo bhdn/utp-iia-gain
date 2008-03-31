@@ -367,7 +367,7 @@ void output_gains(struct attribute_gain *allgains, size_t count,
 	printf("Attributes sorted by information gain:\n");
 	
 	for (i = 0; i < count; i++) {
-		if (i == refattr)
+		if (allgains[i].attribute == refattr)
 			continue;
 
 		printf("attribute%u %lf\n", allgains[i].attribute,
