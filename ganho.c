@@ -22,10 +22,11 @@
 #include <math.h>
 #include <errno.h>
 
-#define DEBUG
+#undef DEBUG
 
 #include "hash.h"
 
+#define LINE_BUFFER_SIZE	(1024*1024)
 #define HASH_SIZE_ATTRIBUTES	1024
 #define HASH_SIZE_CLASSES	64
 
@@ -254,7 +255,7 @@ void strip_newline(char *str)
 
 struct table_stats *collect_stats(FILE *stream)
 {
-	char line[BUFSIZ];
+	char line[LINE_BUFFER_SIZE];
 	char *lineptr; /* used by strsep */
 	unsigned int refhash;
 	size_t nr_attributes;
