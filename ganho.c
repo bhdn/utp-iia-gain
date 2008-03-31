@@ -255,10 +255,11 @@ struct table_stats *collect_stats(FILE *stream)
 
 			fseek(stream, 0L, SEEK_SET);
 		}
-		else
+		else {
 			if (!parse_line(ts, line, sizeof(line)-1, refattr))
 				goto failed;
-		ts->lines++;
+			ts->lines++;
+		}
 	}
 	if (!feof(stream))
 		goto failed;
