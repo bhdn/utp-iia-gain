@@ -21,7 +21,7 @@
 #include <string.h>
 #include <math.h>
 
-#undef DEBUG
+#define DEBUG
 
 #include "hash.h"
 
@@ -55,7 +55,7 @@ struct class_entry *new_class_entry()
 	if (!cl)
 		return NULL;
 	cl->count = 0;
-	cl->refmap = hash_init(50);
+	cl->refmap = hash_init(10);
 	if (!cl->refmap) {
 		free(cl);
 		return NULL;
