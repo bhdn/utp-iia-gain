@@ -268,6 +268,10 @@ struct table_stats *collect_stats(FILE *stream)
 			if (!ts)
 				goto failed;
 
+			/* It defines which is the attribute we will use as
+			 * the reference for this table. Here we could ask
+			 * the user which is the attribute he wants to use.
+			 */
 			ts->refattr = nr_attributes - 1;
 
 			fseek(stream, 0L, SEEK_SET);
