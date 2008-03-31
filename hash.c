@@ -74,6 +74,63 @@ void *hash_put(struct hash_table *table, unsigned char *key, size_t
 	return new; /* just to say it didn't fail */
 }
 
+/* FIXME make these iterator functions inline */
+hash_iter_t hash_iter_first(struct hash_table *table, void **dataptr)
+{
+	struct hash_entry *found;
+	hash_iter_t state;
+	size_t first;
+
+	for (first = 0;
+	     !table->entries[first] && first < table->size;
+	     first++)
+		;
+	if (first >= table->size) {
+		/* nothing found, end of iteration */
+		state.i = table->size;
+		state.current = NULL;
+	}
+	else {
+		found = table->entries[first];
+		*dataptr = found->data;
+		state.i = first;
+		state.current = found;
+	}
+	return state;
+}
+
+hash_iter_t hash_iter_next(struct hash_table *table, hash_iter_t last,
+		void **dataptr)
+{
+	struct hash_entry *found;
+
+	found = last.current->next;
+	if (!found) {
+		/* we have reached the end of the linked list, move to the
+		 * next hash entry */
+		for (last.i++;
+		     !table->entries[last.i] && last.i < table->size;
+		     last.i++)
+			;
+		if (last.i < table->size)
+			found = table->entries[last.i];
+		/* else let last.i pass and make hash_iter_done finish the
+		 * iteration */
+	}
+
+	if (found) {
+		*dataptr = found->data;
+		last.current = found;
+	}
+
+	return last;
+}
+
+int hash_iter_done(struct hash_table *table, hash_iter_t state)
+{
+	return state.i < table->size;
+}
+
 void hash_free_entry(struct hash_entry *entry)
 {
 	struct hash_entry *next;
