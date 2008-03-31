@@ -78,14 +78,24 @@ void free_class_entry(struct class_entry *cl)
 void free_table_stats(struct table_stats *ts)
 {
 	size_t i;
+	hash_iter_t hi;
+	struct class_entry *ce;
 
 	if (!ts)
 		return;
 	if (ts->refclasses)
 		hash_free(ts->refclasses);
 	if (ts->attributes)
-		for (i = 0; i < ts->nr_attributes; i++)
+		for (i = 0; i < ts->nr_attributes; i++) {
+			for (hi = hash_iter_first(ts->attributes[i],
+						(void**)&ce);
+			     hash_iter_done(ts->attributes[i], hi);
+			     hi = hash_iter_next(ts->attributes[i], hi,
+				     (void**)&ce)) {
+				free_class_entry(ce);
+			}
 			hash_free(ts->attributes[i]);
+		}
 	free(ts->attributes);
 	free(ts);
 }
