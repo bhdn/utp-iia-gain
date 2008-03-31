@@ -117,6 +117,8 @@ void dump_table_stats(struct table_stats *ts)
 	size_t i, j, k;
 	struct class_entry *ce;
 
+	/* FIXME there may be more entries in a hash entry! */
+
 	printf("lines: %d\n", ts->lines);
 	for (i = 0; i < ts->nr_attributes; i++) {
 		printf("attribute %d:\n", i);
@@ -139,6 +141,15 @@ void dump_table_stats(struct table_stats *ts)
 
 	}
 
+	printf("classes: %u\n", ts->refclasses->size);
+	for (i = 0; i < ts->refclasses->size; i++) {
+		if (!ts->refclasses->entries[i])
+			continue;
+		printf("class: %s, count: %u\n",
+		       ts->refclasses->entries[i]->key,
+		       (unsigned int) ts->refclasses->entries[i]->data);
+	}
+
 }
 
 struct table_stats *parse_line(struct table_stats *ts, char *line,
@@ -151,6 +162,7 @@ struct table_stats *parse_line(struct table_stats *ts, char *line,
 	size_t ia;
 	size_t nrefclasses;
 	size_t size;
+	unsigned int refcount;
 	unsigned int refhash;
 	struct class_entry *ce;
 	struct hash_table *classes;
@@ -167,6 +179,11 @@ struct table_stats *parse_line(struct table_stats *ts, char *line,
 	}
 	refsize = strnlen(refclass, line_size);
 	refhash = get_hash(refclass, refsize);
+
+	refcount  = (unsigned int)
+		hash_get(ts->refclasses, refclass, refsize, refhash);
+	hash_put(ts->refclasses, refclass, refsize,
+	         (void*)(refcount + 1), refhash);
 
 	/* now we can iterate over the classes in this line
 	 * and update their stats */
