@@ -14,23 +14,25 @@ void *hash_get(struct hash_table *table, unsigned char *key, size_t
 	hash = force_hash ? force_hash : get_hash(key, key_len);
 	pos = hash % table->size;
 	found = table->entries[pos];
-	if (found && found->next) {
-		while (found) {
-			/* HACK HACK HACK!!!  in order to differentiate the
-			   pingeons that we have found in the same
-			   pigeonhole, we compare their full hashes + their
-			   length. This is just an exercise of how to not
-			   keep the keys in memory. */
-			if (found->hash == hash
-				&& found->key_len == key_len) {
-				data = found->data;
-				break;
+	if (found) {
+		if (found->next) {
+			while (found) {
+				/* HACK HACK HACK!!!  in order to differentiate the
+				   pingeons that we have found in the same
+				   pigeonhole, we compare their full hashes + their
+				   length. This is just an exercise of how to not
+				   keep the keys in memory. */
+				if (found->hash == hash
+					&& found->key_len == key_len) {
+					data = found->data;
+					break;
+				}
+				found = found->next;
 			}
-			found = found->next;
 		}
+		else
+			data = found->data;
 	}
-	else if (found)
-		data = found->data;
 
 	return data;
 }
