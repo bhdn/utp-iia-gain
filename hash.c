@@ -86,7 +86,7 @@ hash_iter_t hash_iter_first(struct hash_table *table, void **dataptr)
 	size_t first;
 
 	for (first = 0;
-	     !table->entries[first] && first < table->size;
+	     first < table->size && !table->entries[first];
 	     first++)
 		;
 	if (first >= table->size) {
@@ -113,7 +113,7 @@ hash_iter_t hash_iter_next(struct hash_table *table, hash_iter_t last,
 		/* we have reached the end of the linked list, move to the
 		 * next hash entry */
 		for (last.i++;
-		     !table->entries[last.i] && last.i < table->size;
+		     last.i < table->size && !table->entries[last.i] ;
 		     last.i++)
 			;
 		if (last.i < table->size)
