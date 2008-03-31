@@ -348,9 +348,9 @@ int attribute_gain_cmp(const void *ptr1, const void *ptr2) {
 	ag2 = (struct attribute_gain*) ptr2;
 
 	if (ag1->gain > ag2->gain)
-		return 1;
-	else if (ag2->gain > ag1->gain)
 		return -1;
+	else if (ag2->gain > ag1->gain)
+		return 1;
 	else
 		return 0;
 }
