@@ -23,6 +23,8 @@
 
 #include "hash.h"
 
+#undef DEBUG
+
 /* classes don't need to have their names stored, just their "uniqueness" 
  * is enough */
 struct class_entry {
@@ -298,7 +300,9 @@ struct attribute_gain *get_gain(struct table_stats *ts, size_t *count)
 		p  = (double) refcount / (double) ts->lines;
 		refentropy += -p * log2(p);
 	}
+#ifdef DEBUG
 	printf("refentropy: %lf\n", refentropy);
+#endif
 
 	/* allocate structures to put the gain information */
 	allgains = (struct attribute_gain*)
@@ -394,7 +398,9 @@ int main(int argc, char **argv)
 			perror("parsing file");
 			return 2;
 		}
+#ifdef DEBUG
 		dump_table_stats(ts);
+#endif
 
 		allgains = get_gain(ts, &count);
 		if (!allgains) {
@@ -402,7 +408,6 @@ int main(int argc, char **argv)
 			return 3;
 		}
 		sort_by_gain(allgains, count);
-
 		output_gains(allgains, count, ts->refattr);
 
 		free(allgains);
