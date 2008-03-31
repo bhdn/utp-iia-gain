@@ -68,6 +68,7 @@ void *hash_put(struct hash_table *table, unsigned char *key, size_t
 		}
 		else
 			table->entries[pos] = new;
+		table->count++;
 	}
 
 	return new; /* just to say it didn't fail */
@@ -108,6 +109,7 @@ struct hash_table *hash_init(size_t size)
 		return NULL;
 	}
 	table->size = size;
+	table->count = 0;
 	memset((void*)table->entries, 0, toalloc);
 
 	return table;

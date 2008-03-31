@@ -9,7 +9,8 @@ struct hash_entry {
 };
 
 struct hash_table {
-	size_t size;
+    size_t count; /* the number of real valid entries */
+	size_t size; /* the number of entries allocated */
 	struct hash_entry **entries;
 };
 
