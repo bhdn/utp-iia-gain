@@ -303,6 +303,7 @@ struct attribute_gain *get_gain(struct table_stats *ts, size_t refattr, size_t *
 		malloc(sizeof(struct attribute_gain) * ts->nr_attributes);
 	if (!allgains)
 		goto failed;
+	*count = ts->nr_attributes;
 
 	/* for each attribute found: */
 	for (i = 0; i < ts->nr_attributes; i++) {
@@ -338,8 +339,23 @@ failed:
 	return NULL;
 }
 
-int *sort_by_gain() {
-	return NULL;
+int attribute_gain_cmp(void *ptr1, void *ptr2) {
+	struct attribute_gain *ag1, *ag2;
+
+	ag1 = (struct attribute_gain*) ptr1;
+	ag2 = (struct attribute_gain*) ptr2;
+
+	if (ag1->gain > ag2->gain)
+		return 1;
+	else if (ag1->gain < ag2->gain)
+		return -1;
+	else
+		return 0;
+}
+
+void sort_by_gain(struct attribute_gain *allgains, size_t count) {
+	qsort(allgains, count, sizeof(struct attribute_gain),
+	      attribute_gain_cmp);
 }
 
 int main(int argc, char **argv) 
@@ -347,6 +363,7 @@ int main(int argc, char **argv)
 	size_t i, count;
 	FILE *stream;
 	struct table_stats *ts;
+	struct attribute_gain *allgains;
 
 	for (i = 1; i < argc; i++) {
 		stream = fopen(argv[i], "r");
@@ -356,12 +373,19 @@ int main(int argc, char **argv)
 		}
 
 		ts = collect_stats(stream);
-		dump_table_stats(ts);
-		get_gain(ts, &count);
 		if (!ts) {
 			perror("parsing file");
-			return 1;
+			return 2;
 		}
+		dump_table_stats(ts);
+
+		allgains = get_gain(ts, &count);
+		if (!allgains) {
+			perror("calculating gains");
+			return 3;
+		}
+
+		sort_by_gain(allgains, count);
 	}
 
 	return 0;
