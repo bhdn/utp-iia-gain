@@ -370,7 +370,8 @@ void output_gains(struct attribute_gain *allgains, size_t count,
 		if (i == refattr)
 			continue;
 
-		printf("attribute%u %lf\n", i, allgains[i]);
+		printf("attribute%u %lf\n", allgains[i].attribute,
+		       allgains[i].gain);
 	}
 }
 
@@ -400,7 +401,6 @@ int main(int argc, char **argv)
 			perror("calculating gains");
 			return 3;
 		}
-
 		sort_by_gain(allgains, count);
 
 		output_gains(allgains, count, ts->refattr);
