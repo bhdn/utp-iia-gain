@@ -55,7 +55,7 @@ struct class_entry *new_class_entry()
 	if (!cl)
 		return NULL;
 	cl->count = 0;
-	cl->refmap = hash_init(10);
+	cl->refmap = hash_init(64);
 	if (!cl->refmap) {
 		free(cl);
 		return NULL;
