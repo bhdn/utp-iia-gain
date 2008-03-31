@@ -26,13 +26,18 @@
 /* classes don't need to have their names stored, just their "uniqueness" 
  * is enough */
 struct class_entry {
-	unsigned long count;
+	unsigned long count; /* FIXME correct type */
 	struct hash_table *refmap; /* counts in which classes of the ref.
 				    * attribute it appeared */
 };
 
+struct attribute_gain {
+	size_t attribute;
+	double gain;
+};
+
 struct table_stats {
-	unsigned long lines;
+	unsigned int lines;
 	struct hash_table **attributes;
 	size_t nr_attributes;
 	struct hash_table *refclasses;
@@ -271,12 +276,75 @@ failed:
 
 }
 
+struct attribute_gain *get_gain(struct table_stats *ts, size_t refattr, size_t *count)
+{
+	size_t i, nrefclasses;
+	unsigned int refcount;
+	double p;
+	double attrentropy, refentropy, attrgain;
+	hash_iter_t hi, rmhi;
+	struct class_entry *ce;
+
+	struct attribute_gain *allgains;
+
+	/* obtain the entropy of the reference attribute */
+	refentropy = 0.0;
+	for (hi = hash_iter_first(ts->refclasses, (void**)&refcount);
+	     hash_iter_done(ts->refclasses, hi);
+	     hi = hash_iter_next(ts->refclasses, hi, (void**)&refcount)) {
+
+		p  = (double) refcount / (double) ts->lines;
+		refentropy += -p * log2(p);
+	}
+	printf("refentropy: %lf\n", refentropy);
+
+	/* allocate structures to put the gain information */
+	allgains = (struct attribute_gain*)
+		malloc(sizeof(struct attribute_gain) * ts->nr_attributes);
+	if (!allgains)
+		goto failed;
+
+	/* for each attribute found: */
+	for (i = 0; i < ts->nr_attributes; i++) {
+
+		attrgain = refentropy;
+
+		/* for each class of the attribute: */
+		for (hi = hash_iter_first(ts->attributes[i], (void**)&ce);
+		     hash_iter_done(ts->attributes[i], hi);
+		     hi = hash_iter_next(ts->attributes[i], hi, (void**)&ce)) {
+
+			attrentropy = 0.0;
+
+			/* for each class of the reference attribute
+			 * referenced along with the current class: */
+			for (rmhi = hash_iter_first(ce->refmap, (void**)&nrefclasses);
+			     hash_iter_done(ce->refmap, rmhi);
+			     rmhi = hash_iter_next(ce->refmap, rmhi, (void**)&nrefclasses)) {
+
+				p = (double) nrefclasses / (double) ce->count;
+				attrentropy += -p * log2(p);
+			}
+			p = (double) ce->count / (double) ts->lines;
+			attrgain += -p * attrentropy;
+		}
+
+		allgains[i].attribute = i;
+		allgains[i].gain = attrgain;
+	}
+
+	return allgains;
+failed:
+	return NULL;
+}
+
 int *sort_by_gain() {
+	return NULL;
 }
 
 int main(int argc, char **argv) 
 {
-	size_t i;
+	size_t i, count;
 	FILE *stream;
 	struct table_stats *ts;
 
@@ -289,6 +357,7 @@ int main(int argc, char **argv)
 
 		ts = collect_stats(stream);
 		dump_table_stats(ts);
+		get_gain(ts, &count);
 		if (!ts) {
 			perror("parsing file");
 			return 1;
