@@ -1,4 +1,4 @@
-CFLAGS = -g -std=c99
+CFLAGS = -g 
 LDFLAGS = -lm
 
 all: ganho
