@@ -375,7 +375,8 @@ void sort_by_gain(struct attribute_gain *allgains, size_t count)
 }
 
 void output_gains(struct attribute_gain *allgains, size_t count,
-		size_t refattr) {
+		size_t refattr)
+{
 	size_t i;
 
 	printf("Attributes sorted by information gain:\n");
