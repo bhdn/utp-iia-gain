@@ -1,4 +1,5 @@
-CFLAGS = -g
+CFLAGS = -g -std=c99
+LDFLAGS = -lm
 
 all: ganho
 ganho: hash.o

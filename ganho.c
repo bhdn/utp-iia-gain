@@ -41,6 +41,7 @@ struct table_stats {
 	struct hash_table **attributes;
 	size_t nr_attributes;
 	struct hash_table *refclasses;
+	size_t refattr;
 };
 
 struct class_entry *new_class_entry()
@@ -110,6 +111,7 @@ struct table_stats *new_table_stats(size_t nr_attributes)
 
 	ts->nr_attributes = nr_attributes;
 	ts->lines = 0;
+	ts->refattr = 0;
 
 	return ts;
 failed:
@@ -158,7 +160,7 @@ void dump_table_stats(struct table_stats *ts)
 }
 
 struct table_stats *parse_line(struct table_stats *ts, char *line,
-		size_t line_size, size_t refattr)
+		size_t line_size)
 {
 	char *refclass;
 	char *token;
@@ -194,7 +196,7 @@ struct table_stats *parse_line(struct table_stats *ts, char *line,
 	 * and update their stats */
 	for (ia = 0; token = strtok_r(line, ",", &last);
 	     ia++, line = NULL) {
-		if (ia == refattr)
+		if (ia == ts->refattr)
 			continue;
 
 		classes = ts->attributes[ia];
@@ -236,7 +238,6 @@ struct table_stats *collect_stats(FILE *stream)
 	char *lineptr; /* used by strsep */
 	unsigned int refhash;
 	size_t nr_attributes;
-	size_t refattr;
 	struct table_stats *ts = NULL;
 
 	nr_attributes = 0;
@@ -252,16 +253,17 @@ struct table_stats *collect_stats(FILE *stream)
 				if (*lineptr == ',')
 					nr_attributes++;
 			nr_attributes++;
-			refattr = nr_attributes - 1;
 
 			ts = new_table_stats(nr_attributes);
 			if (!ts)
 				goto failed;
 
+			ts->refattr = nr_attributes - 1;
+
 			fseek(stream, 0L, SEEK_SET);
 		}
 		else {
-			if (!parse_line(ts, line, sizeof(line)-1, refattr))
+			if (!parse_line(ts, line, sizeof(line)-1))
 				goto failed;
 			ts->lines++;
 		}
@@ -276,7 +278,7 @@ failed:
 
 }
 
-struct attribute_gain *get_gain(struct table_stats *ts, size_t refattr, size_t *count)
+struct attribute_gain *get_gain(struct table_stats *ts, size_t *count)
 {
 	size_t i, nrefclasses;
 	unsigned int refcount;
@@ -339,7 +341,7 @@ failed:
 	return NULL;
 }
 
-int attribute_gain_cmp(void *ptr1, void *ptr2) {
+int attribute_gain_cmp(const void *ptr1, const void *ptr2) {
 	struct attribute_gain *ag1, *ag2;
 
 	ag1 = (struct attribute_gain*) ptr1;
@@ -347,7 +349,7 @@ int attribute_gain_cmp(void *ptr1, void *ptr2) {
 
 	if (ag1->gain > ag2->gain)
 		return 1;
-	else if (ag1->gain < ag2->gain)
+	else if (ag2->gain > ag1->gain)
 		return -1;
 	else
 		return 0;
@@ -356,6 +358,20 @@ int attribute_gain_cmp(void *ptr1, void *ptr2) {
 void sort_by_gain(struct attribute_gain *allgains, size_t count) {
 	qsort(allgains, count, sizeof(struct attribute_gain),
 	      attribute_gain_cmp);
+}
+
+void output_gains(struct attribute_gain *allgains, size_t count,
+		size_t refattr) {
+	size_t i;
+
+	printf("Attributes sorted by information gain:\n");
+	
+	for (i = 0; i < count; i++) {
+		if (i == refattr)
+			continue;
+
+		printf("attribute%u %lf\n", i, allgains[i]);
+	}
 }
 
 int main(int argc, char **argv) 
@@ -386,6 +402,8 @@ int main(int argc, char **argv)
 		}
 
 		sort_by_gain(allgains, count);
+
+		output_gains(allgains, count, ts->refattr);
 	}
 
 	return 0;
