@@ -399,13 +399,13 @@ int main(int argc, char **argv)
 	for (i = 1; i < argc; i++) {
 		stream = fopen(argv[i], "r");
 		if (!stream) {
-			perror("opening file");
+			perror("failed opening file");
 			return 1;
 		}
 
 		ts = collect_stats(stream);
 		if (!ts) {
-			perror("parsing file");
+			perror("failed parsing file");
 			return 2;
 		}
 #ifdef DEBUG
@@ -414,7 +414,7 @@ int main(int argc, char **argv)
 
 		allgains = get_gain(ts, &count);
 		if (!allgains) {
-			perror("calculating gains");
+			perror("failed calculating gains");
 			return 3;
 		}
 		sort_by_gain(allgains, count);
