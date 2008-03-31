@@ -200,19 +200,27 @@ failed:
 	return NULL;
 }
 
+void strip_newline(char *str)
+{
+	for (;*str; str++)
+		if (*str == '\n' || *str == '\r')
+			*str = '\0';
+}
+
 struct table_stats *collect_stats(FILE *stream)
 {
 	char line[BUFSIZ];
 	char *lineptr; /* used by strsep */
 	unsigned int refhash;
 	size_t nr_attributes;
-	size_t size;
 	size_t refattr;
 	struct table_stats *ts = NULL;
 
 	nr_attributes = 0;
 	while (fgets(line, sizeof(line)-1, stream)) {
 		lineptr = line;
+
+		strip_newline(line);
 
 		if (nr_attributes == 0) {
 			/* count how many attributes we have and initialize
