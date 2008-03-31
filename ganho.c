@@ -25,6 +25,9 @@
 
 #include "hash.h"
 
+#define HASH_SIZE_ATTRIBUTES	1024
+#define HASH_SIZE_CLASSES	64
+
 
 /* classes don't need to have their names stored, just their "uniqueness" 
  * is enough */
@@ -55,7 +58,7 @@ struct class_entry *new_class_entry()
 	if (!cl)
 		return NULL;
 	cl->count = 0;
-	cl->refmap = hash_init(64);
+	cl->refmap = hash_init(HASH_SIZE_CLASSES);
 	if (!cl->refmap) {
 		free(cl);
 		return NULL;
@@ -94,7 +97,7 @@ struct table_stats *new_table_stats(size_t nr_attributes)
 	if (!ts)
 		return NULL;
 
-	ts->refclasses = hash_init(1024);
+	ts->refclasses = hash_init(HASH_SIZE_ATTRIBUTES);
 	if (!ts->refclasses)
 		goto failed;
 
@@ -103,7 +106,7 @@ struct table_stats *new_table_stats(size_t nr_attributes)
 	if (!ts->attributes)
 		goto failed;
 	for (i = 0; i < nr_attributes; i++) {
-		ts->attributes[i] = hash_init(1024);
+		ts->attributes[i] = hash_init(HASH_SIZE_ATTRIBUTES);
 		if (!ts->attributes[i]) {
 			for (; i >= 0; i--)
 				hash_free(ts->attributes[i]);
