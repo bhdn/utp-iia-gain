@@ -439,6 +439,8 @@ int main(int argc, char **argv)
 		sort_by_gain(allgains, count);
 		output_gains(allgains, count, ts->refattr);
 
+		fclose(stream);
+
 		free(allgains);
 		free_table_stats(ts);
 	}
