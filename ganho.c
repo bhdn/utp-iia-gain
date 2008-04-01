@@ -408,6 +408,7 @@ int main(int argc, char **argv)
 	FILE *stream;
 	struct table_stats *ts;
 	struct attribute_gain *allgains;
+	int errcode = 0;
 
 	if (argc <= 1) {
 		printf("Usage:\n\n"
@@ -419,13 +420,15 @@ int main(int argc, char **argv)
 		stream = fopen(argv[i], "r");
 		if (!stream) {
 			perror("failed opening file");
-			return 1;
+			errcode = 1;
+			goto failed_open;
 		}
 
 		ts = collect_stats(stream);
 		if (!ts) {
 			perror("failed parsing file");
-			return 2;
+			errcode = 2;
+			goto failed_collect;
 		}
 #ifdef DEBUG
 		dump_table_stats(ts);
@@ -434,16 +437,20 @@ int main(int argc, char **argv)
 		allgains = get_gain(ts, &count);
 		if (!allgains) {
 			perror("failed calculating gains");
-			return 3;
+			errcode = 3;
+			goto failed_gain;
 		}
 		sort_by_gain(allgains, count);
 		output_gains(allgains, count, ts->refattr);
 
-		fclose(stream);
-
 		free(allgains);
+failed_gain:
 		free_table_stats(ts);
+failed_collect:
+		fclose(stream);
+failed_open:
+		continue;
 	}
 
-	return 0;
+	return errcode;
 }
