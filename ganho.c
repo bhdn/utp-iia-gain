@@ -87,11 +87,7 @@ void free_table_stats(struct table_stats *ts)
 		hash_free(ts->refclasses);
 	if (ts->attributes)
 		for (i = 0; i < ts->nr_attributes; i++) {
-			for (hi = hash_iter_first(ts->attributes[i],
-						(void**)&ce);
-			     hash_iter_done(ts->attributes[i], hi);
-			     hi = hash_iter_next(ts->attributes[i], hi,
-				     (void**)&ce)) {
+			for_each_hash_value(ts->attributes[i], hi, ce) {
 				free_class_entry(ce);
 			}
 			hash_free(ts->attributes[i]);
@@ -167,7 +163,7 @@ void dump_table_stats(struct table_stats *ts)
 
 		}
 
-	}
+		}
 
 	printf("classes: %u\n", ts->refclasses->size);
 	for (i = 0; i < ts->refclasses->size; i++) {
@@ -326,10 +322,7 @@ struct attribute_gain *get_gain(struct table_stats *ts, size_t *count)
 
 	/* obtain the entropy of the reference attribute */
 	refentropy = 0.0;
-	for (hi = hash_iter_first(ts->refclasses, (void**)&refcount);
-	     hash_iter_done(ts->refclasses, hi);
-	     hi = hash_iter_next(ts->refclasses, hi, (void**)&refcount)) {
-
+	for_each_hash_value(ts->refclasses, hi, refcount) {
 		p  = (double) refcount / (double) ts->lines;
 		refentropy += -p * log2(p);
 	}
@@ -350,18 +343,12 @@ struct attribute_gain *get_gain(struct table_stats *ts, size_t *count)
 		attrgain = refentropy;
 
 		/* for each class of the attribute: */
-		for (hi = hash_iter_first(ts->attributes[i], (void**)&ce);
-		     hash_iter_done(ts->attributes[i], hi);
-		     hi = hash_iter_next(ts->attributes[i], hi, (void**)&ce)) {
-
+		for_each_hash_value(ts->attributes[i], hi, ce) {
 			attrentropy = 0.0;
 
 			/* for each class of the reference attribute
 			 * referenced along with the current class: */
-			for (rmhi = hash_iter_first(ce->refmap, (void**)&nrefclasses);
-			     hash_iter_done(ce->refmap, rmhi);
-			     rmhi = hash_iter_next(ce->refmap, rmhi, (void**)&nrefclasses)) {
-
+			for_each_hash_value(ce->refmap, rmhi, nrefclasses) {
 				p = (double) nrefclasses / (double) ce->count;
 				attrentropy += -p * log2(p);
 			}

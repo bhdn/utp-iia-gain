@@ -33,4 +33,11 @@ hash_iter_t hash_iter_first(struct hash_table *, void **);
 hash_iter_t hash_iter_next(struct hash_table *, hash_iter_t, void **);
 int hash_iter_done(struct hash_table *, hash_iter_t);
 
+/* hide the crap: */
+
+#define for_each_hash_value(table, iter, data) \
+	for (iter = hash_iter_first(table, (void**)&data); \
+	     hash_iter_done(table, iter); \
+	     iter = hash_iter_next(table, iter, (void**)&data))
+
 #endif /* ifndef inc_hash_h */
