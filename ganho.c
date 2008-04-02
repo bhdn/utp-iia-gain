@@ -386,8 +386,8 @@ void sort_by_gain(struct attribute_gain *allgains, size_t count)
 	      attribute_gain_cmp);
 }
 
-void output_gains(struct attribute_gain *allgains, size_t count,
-		size_t refattr)
+void output_gains(FILE *outstream, struct attribute_gain *allgains,
+		size_t count, size_t refattr)
 {
 	size_t i;
 
@@ -404,53 +404,69 @@ void output_gains(struct attribute_gain *allgains, size_t count,
 
 int main(int argc, char **argv) 
 {
-	size_t i, count;
-	FILE *stream;
+	size_t count;
+	FILE *instream, *outstream;
 	struct table_stats *ts;
 	struct attribute_gain *allgains;
 	int errcode = 0;
 
 	if (argc <= 1) {
 		printf("Usage:\n\n"
-		       "%s <file.cvs>\n\n", argv[0]);
+		       "%s <file.cvs> [outputfile]\n\n", argv[0]);
 		return 0;
 	}
-
-	for (i = 1; i < argc; i++) {
-		stream = fopen(argv[i], "r");
-		if (!stream) {
-			perror("failed opening file");
+	else if (argc == 2)
+		outstream = stdout;
+	else if (argc == 3) {
+		outstream = fopen(argv[2], "w");
+		if (!outstream) {
+			perror("failed while opening output file");
 			errcode = 1;
-			goto failed_open;
+			goto failed_open_output;
 		}
+	}
+	else {
+		fprintf(stderr, "invalid number of arguments\n");
+		errcode = 1;
+		goto failed_parsing_args;
+	}
 
-		ts = collect_stats(stream);
-		if (!ts) {
-			perror("failed parsing file");
-			errcode = 2;
-			goto failed_collect;
-		}
+	instream = fopen(argv[1], "r");
+	if (!instream) {
+		perror("failed while opening input file");
+		errcode = 2;
+		goto failed_open_input;
+	}
+
+	ts = collect_stats(instream);
+	if (!ts) {
+		perror("failed parsing file");
+		errcode = 3;
+		goto failed_collect;
+	}
 #ifdef DEBUG
-		dump_table_stats(ts);
+	dump_table_stats(ts);
 #endif
 
-		allgains = get_gain(ts, &count);
-		if (!allgains) {
-			perror("failed calculating gains");
-			errcode = 3;
-			goto failed_gain;
-		}
-		sort_by_gain(allgains, count);
-		output_gains(allgains, count, ts->refattr);
-
-		free(allgains);
-failed_gain:
-		free_table_stats(ts);
-failed_collect:
-		fclose(stream);
-failed_open:
-		continue;
+	allgains = get_gain(ts, &count);
+	if (!allgains) {
+		perror("failed calculating gains");
+		errcode = 4;
+		goto failed_gain;
 	}
+	sort_by_gain(allgains, count);
+	output_gains(outstream, allgains, count, ts->refattr);
+
+	free(allgains);
+failed_gain:
+	free_table_stats(ts);
+failed_collect:
+	fclose(instream);
+failed_open_input:
+	if (outstream != stdout)
+		fclose(outstream);
+failed_parsing_args:
+failed_open_output:
 
 	return errcode;
 }
