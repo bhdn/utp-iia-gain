@@ -391,14 +391,13 @@ void output_gains(FILE *outstream, struct attribute_gain *allgains,
 {
 	size_t i;
 
-	printf("Attributes sorted by information gain:\n");
-	
 	for (i = 0; i < count; i++) {
 		if (allgains[i].attribute == refattr)
 			continue;
 
-		printf("attribute%u %lf\n", allgains[i].attribute,
-		       allgains[i].gain);
+		fprintf(outstream, "attribute%u %lf\n",
+			allgains[i].attribute,
+		        allgains[i].gain);
 	}
 }
 
