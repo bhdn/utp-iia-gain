@@ -410,7 +410,10 @@ int main(int argc, char **argv)
 
 	if (argc <= 1) {
 		printf("Usage:\n\n"
-		       "%s <file.cvs> [outputfile]\n\n", argv[0]);
+		       "%s <file.cvs> [outputfile]\n\n"
+		       "UTP, Intro. IA, Bogdano Arendartchuk <debogdano@gmail.com>\n"
+		       "%s %s\n", 
+		       argv[0], __FILE__, __DATE__);
 		return 0;
 	}
 	else if (argc == 2)
