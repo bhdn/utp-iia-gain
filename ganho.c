@@ -182,7 +182,6 @@ struct table_stats *parse_line(struct table_stats *ts, char *line,
 {
 	char *refclass;
 	char *token;
-	char *last;
 	size_t refsize;
 	size_t ia;
 	size_t nrefclasses;
@@ -202,7 +201,7 @@ struct table_stats *parse_line(struct table_stats *ts, char *line,
 				"%s\n", line);
 		goto failed;
 	}
-	refsize = strnlen(refclass, line_size);
+	refsize = strlen(refclass);
 	refhash = get_hash(refclass, refsize);
 
 	refcount  = (unsigned int)
@@ -212,7 +211,7 @@ struct table_stats *parse_line(struct table_stats *ts, char *line,
 
 	/* now we can iterate over the classes in this line
 	 * and update their stats */
-	for (ia = 0; token = strtok_r(line, ",", &last);
+	for (ia = 0; token = strtok(line, ",");
 	     ia++, line = NULL) {
 		if (ia == ts->refattr)
 			continue;
@@ -227,7 +226,7 @@ struct table_stats *parse_line(struct table_stats *ts, char *line,
 		}
 
 		classes = ts->attributes[ia];
-		size = strnlen(token, line_size);
+		size = strlen(token);
 		ce = (struct class_entry*)
 		        hash_get(classes, token, size, 0);
 		if (!ce) {
