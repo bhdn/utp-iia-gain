@@ -195,12 +195,16 @@ struct table_stats *parse_line(struct table_stats *ts, char *line,
 	 * attribute that is used in this line, this way we
 	 * can store the stats for each attribute class in
 	 * a simple loop around strtok_r */
-	refclass = strrchr(line, ',') + 1;
+	refclass = strrchr(line, ',');
 	if (!refclass) {
+		/* FIXME we can't handle files with only one column */
 		fprintf(stderr, "ouch, missing comma in line: "
 				"%s\n", line);
+		errno = EINVAL;
 		goto failed;
 	}
+	++refclass; /* skip the comma */
+
 	refsize = strlen(refclass);
 	refhash = get_hash(refclass, refsize);
 
