@@ -119,7 +119,7 @@ struct table_stats *new_table_stats(size_t nr_attributes)
 			for (; i >= 0; i--)
 				hash_free(ts->attributes[i]);
 			free(ts->attributes);
-			return NULL;
+			goto failed;
 		}
 	}
 
